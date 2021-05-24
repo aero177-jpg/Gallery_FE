@@ -53,3 +53,17 @@
 .active {
   border: 2px solid rebeccapurple;
 }
+
+.fadein {
+  background-color: gray;
+  animation: fade 1s;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

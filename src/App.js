@@ -9,6 +9,16 @@ import {
   useWindowWidth,
   useWindowHeight,
 } from "@react-hook/window-size/throttled";
+import Carousel from "react-gallery-carousel";
+import "react-gallery-carousel/dist/index.css";
+
+const Example2 = () => {
+  const images = [9, 8, 7, 6, 5].map((number) => ({
+    src: `https://placedog.net/${number}00/${number}00?id=${number}`,
+  }));
+
+  return <Carousel images={images} style={{ height: 800, width: 500 }} />;
+};
 
 const Example = () => {
   const onlyWidth = useWindowWidth();
@@ -60,23 +70,18 @@ function App() {
   }, []);
 
   async function populatePhotos() {
+    // setRatioArray({ ratioArray: [] });
+    // setPhotoIdArray({ photoIdArray: [] });
     try {
       setLoading({ loading: true });
       const userID = 145;
-      console.log("trying something...");
       const photoArr = await getPhotosByUserID(userID);
-      console.log("cool it worked");
-      console.log(photoArr);
+      // console.log(photoArr);
       setLoading({ loading: false });
-      setPhotoIdArray((old) => [...old, ...photoArr]);
+      setPhotoIdArray([...photoArr]);
       let newArr = photoArr.map((thing) => thing.ratio);
-      setRatioArray((old) => [...old, ...newArr]);
+      setRatioArray([...newArr]);
       setFinished({ hasFinished: true });
-      // setTimeout(() => {
-      //   console.log(photoIdArray);
-      // }, 2000);
-
-      // console.log(photoIdArray);
     } catch (error) {
       await setError({ error });
       console.log(error);
@@ -119,11 +124,25 @@ function App() {
       </div>
     );
   }
+  const Example3 = () => {
+    const images = photoIdArray.map((file) => ({
+      // src: `https://placedog.net/${number}00/${number}00?id=${number}`,
+      src: `${process.env.REACT_APP_CLOUDINARY_URL}w_400,c_scale/${file.photoID}`,
+    }));
 
+    return (
+      <Carousel
+        canAutoPlay={false}
+        images={images}
+        index={2}
+        style={{ height: 800, width: 500 }}
+      />
+    );
+  };
   const RenderPhotos = () => {
     // let arr = [0.66, 1.05, 0.66, 1.05, 2.24, 1.73, 0.66, 1.07];
     let arr = ratioArray.map((num) => parseFloat(num));
-    console.log(ratioArray);
+    // console.log(ratioArray);
     let x = onlyWidth;
     let geometry = require("justified-layout")(arr, {
       targetRowHeight:
@@ -131,40 +150,42 @@ function App() {
       containerWidth: x,
     });
     let box = {};
-    let num = 340;
     // console.log(geometry.containerHeight);
     //1060
+    let images = photoIdArray.map((file, index) => {
+      // console.log(index);
+
+      box = geometry.boxes[index];
+
+      return (
+        <img
+          // className="fadein"
+          src={`${process.env.REACT_APP_CLOUDINARY_URL}${file.photoID}`}
+          // cloudName={process.env.REACT_APP_CLOUDINARY_CLOUD_NAME}
+          // publicId={file.photoID}
+          // height="400"
+          // crop="scale"
+          //w_600,c_scale/
+          style={{
+            position: "absolute",
+            top: `${box?.top}px`,
+            left: `${box?.left}px`,
+            width: `${box?.width}px`,
+            height: `${box?.height}px`,
+          }}
+        />
+      );
+    });
     return (
       <div
         style={{
           position: "relative",
-          backgroundColor: "red",
+          // backgroundColor: "red",
           height: `${geometry.containerHeight}px`,
           width: `${x}`,
         }}
       >
-        {photoIdArray.map((file, index) => {
-          // console.log(index);
-
-          box = geometry.boxes[index];
-
-          return (
-            <img
-              src={`${process.env.REACT_APP_CLOUDINARY_URL}w_400,c_scale/${file.photoID}`}
-              // cloudName={process.env.REACT_APP_CLOUDINARY_CLOUD_NAME}
-              // publicId={file.photoID}
-              // height="400"
-              // crop="scale"
-              style={{
-                position: "absolute",
-                top: `${box?.top}px`,
-                left: `${box?.left}px`,
-                width: `${box?.width}px`,
-                height: `${box?.height}px`,
-              }}
-            />
-          );
-        })}
+        {images}
       </div>
     );
 
@@ -203,7 +224,8 @@ function App() {
       setUploadedFiles((old) => [...old, data]);
       if (uploadedPhotoIdArray.length === acceptedFiles.length) {
         console.log(uploadedPhotoIdArray);
-        addPhotos(userID, uploadedPhotoIdArray);
+        await addPhotos(userID, uploadedPhotoIdArray);
+        populatePhotos();
       }
     });
   }, []);
@@ -217,7 +239,7 @@ function App() {
     <div className="App">
       {hasFinished && <RenderPhotos />}
       {/* <RenderLIES /> */}
-      {/* <Example /> */}
+      {/* <Example3 /> */}
       <div
         {...getRootProps()}
         className={`dropzone ${isDragActive ? "active" : ""}`}
