@@ -17,3 +17,13 @@ export async function addPhotos(userID, photoIdArray) {
     body: JSON.stringify({ userID, photoIdArray }),
   });
 }
+
+export function deletePhotos(photoIdArray) {
+  return fetch(`${API_URL}/removephotos`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ photoIdArray }),
+  }).then((res) => res.json());
+}
